@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Next.js
+services/dashboard/.next/
+services/dashboard/out/
+
+# Go binaries
+services/api/webhook-api
+services/worker/scanner-worker
+
+# Environment
+.env
+
+# OS
+.DS_Store
