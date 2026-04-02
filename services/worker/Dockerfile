@@ -1,5 +1,5 @@
 # ---- build stage ----
-FROM golang:1.22-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 RUN apk add --no-cache git
 
@@ -17,7 +17,7 @@ FROM alpine:3.20
 
 # Install gitleaks and git (needed for cloning)
 RUN apk add --no-cache git && \
-    GITLEAKS_VERSION=8.21.2 && \
+    GITLEAKS_VERSION=8.30.1 && \
     wget -qO- "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
     | tar -xz -C /usr/local/bin gitleaks && \
     chmod +x /usr/local/bin/gitleaks
