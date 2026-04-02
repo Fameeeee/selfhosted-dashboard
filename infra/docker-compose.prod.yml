@@ -1,0 +1,44 @@
+version: "3.9"
+
+# Production overrides — use with:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  api:
+    image: ghcr.io/${GITHUB_REPOSITORY}/api:${IMAGE_TAG:-latest}
+    build: !reset null
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  worker:
+    image: ghcr.io/${GITHUB_REPOSITORY}/worker:${IMAGE_TAG:-latest}
+    build: !reset null
+    environment:
+      WORKERS: ${WORKERS:-8}
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  dashboard:
+    image: ghcr.io/${GITHUB_REPOSITORY}/dashboard:${IMAGE_TAG:-latest}
+    build: !reset null
+
+  redis:
+    command: >
+      redis-server
+      --save 60 1
+      --requirepass ${REDIS_PASSWORD}
+      --loglevel warning
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # Disable port exposure in production
+    ports: !reset []

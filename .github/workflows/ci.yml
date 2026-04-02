@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  lint-test-api:
+    runs-on: ubuntu-latest
+    needs: secret-scan
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: services/api/go.sum
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: services/api
+      - name: Test
+        run: go test ./... -race -coverprofile=coverage.out
+      - uses: codecov/codecov-action@v4
+        with:
+          files: services/api/coverage.out
+          flags: api
+
+  lint-test-worker:
+    runs-on: ubuntu-latest
+    needs: secret-scan
+    defaults:
+      run:
+        working-directory: services/worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: services/worker/go.sum
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: services/worker
+      - name: Test
+        run: go test ./... -race -coverprofile=coverage.out
+      - uses: codecov/codecov-action@v4
+        with:
+          files: services/worker/coverage.out
+          flags: worker
+
+  lint-test-dashboard:
+    runs-on: ubuntu-latest
+    needs: secret-scan
+    defaults:
+      run:
+        working-directory: services/dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: services/dashboard/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  build-images:
+    runs-on: ubuntu-latest
+    needs: [lint-test-api, lint-test-worker, lint-test-dashboard]
+    strategy:
+      matrix:
+        service: [api, worker, dashboard]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ${{ matrix.service }}
+        run: docker build -t ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ github.sha }} ./services/${{ matrix.service }}
+      - name: Trivy scan ${{ matrix.service }}
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ github.sha }}
+          severity: "CRITICAL,HIGH"
+          exit-code: "1"
