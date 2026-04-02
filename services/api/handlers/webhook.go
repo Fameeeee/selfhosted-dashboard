@@ -4,7 +4,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -74,11 +73,4 @@ func Webhook(secret string, q queue.Queue, logger *slog.Logger) http.HandlerFunc
 		w.WriteHeader(http.StatusAccepted)
 		_, _ = fmt.Fprintf(w, `{"status":"queued","delivery_id":%q}`, deliveryID)
 	}
-}
-
-// writeJSON is a small helper used in tests.
-func writeJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
 }
