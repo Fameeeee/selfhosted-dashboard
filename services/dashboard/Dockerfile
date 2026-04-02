@@ -17,7 +17,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
+RUN apk upgrade --no-cache zlib && \
+    addgroup -S nodejs && adduser -S nextjs -G nodejs
 
 # next build --output standalone copies only what's needed
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
