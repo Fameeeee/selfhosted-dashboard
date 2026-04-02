@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import "./globals.css";
+import Sidebar from "@/components/Sidebar";
 
 export const metadata: Metadata = {
   title: "Secret Scanner Dashboard",
@@ -12,7 +14,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-slate-50">
+        <Sidebar />
+        <div className="pl-60 min-h-screen flex flex-col">
+          <main className="flex-1 p-8">{children}</main>
+        </div>
+      </body>
     </html>
   );
 }
