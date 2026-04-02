@@ -10,11 +10,9 @@
   },
   "dependencies": {
     "next": "^16.2.2",
+    "picomatch": "^4.0.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
-  },
-  "overrides": {
-    "picomatch": "^4.0.4"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
