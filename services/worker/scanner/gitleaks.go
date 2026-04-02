@@ -43,7 +43,7 @@ func (s *Scanner) Scan(ctx context.Context, repoURL string) (*Result, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create temp dir: %w", err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	if err := cloneRepo(ctx, repoURL, dir); err != nil {
 		return nil, fmt.Errorf("clone %s: %w", repoURL, err)

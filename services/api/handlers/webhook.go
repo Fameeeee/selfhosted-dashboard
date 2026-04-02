@@ -26,7 +26,7 @@ func ValidateSignature(secret, signature string, body []byte) bool {
 		return false
 	}
 	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write(body)
+	_, _ = mac.Write(body)
 	expected := mac.Sum(nil)
 	return hmac.Equal(got, expected)
 }
@@ -72,7 +72,7 @@ func Webhook(secret string, q queue.Queue, logger *slog.Logger) http.HandlerFunc
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusAccepted)
-		fmt.Fprintf(w, `{"status":"queued","delivery_id":%q}`, deliveryID)
+		_, _ = fmt.Fprintf(w, `{"status":"queued","delivery_id":%q}`, deliveryID)
 	}
 }
 
@@ -80,5 +80,5 @@ func Webhook(secret string, q queue.Queue, logger *slog.Logger) http.HandlerFunc
 func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(v)
+	_ = json.NewEncoder(w).Encode(v)
 }
